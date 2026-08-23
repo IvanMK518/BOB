@@ -1,0 +1,70 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "BOB: full optimizer ablation",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "Pipeline.Models.Experiments.bob_ablation",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": [
+        "--band",
+        "${input:bobBand}",
+        "--zero-phase",
+        "${input:zeroPhase}",
+        "--workers",
+        "1"
+      ],
+      "env": {
+        "OMP_NUM_THREADS": "1"
+      }
+    },
+    {
+      "name": "BOB: one-subject random smoke test",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "Pipeline.Models.Experiments.bob_ablation",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": [
+        "--band",
+        "theta",
+        "--zero-phase",
+        "false",
+        "--optimizers",
+        "random_search",
+        "--seeds",
+        "42",
+        "--n-evaluations",
+        "10",
+        "--n-startup",
+        "2",
+        "--subject-limit",
+        "1",
+        "--output-dir",
+        "${workspaceFolder}\\Pipeline\\Results\\Raw\\BOB_smoke",
+        "--overwrite"
+      ],
+      "env": {
+        "OMP_NUM_THREADS": "1"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "bobBand",
+      "type": "pickString",
+      "description": "Dataset/band",
+      "options": ["theta", "alpha", "both"],
+      "default": "theta"
+    },
+    {
+      "id": "zeroPhase",
+      "type": "pickString",
+      "description": "Zero-phase condition",
+      "options": ["false", "true", "both"],
+      "default": "false"
+    }
+  ]
+}
