@@ -17,6 +17,7 @@ from Pipeline.Models.Optimizers import (
     SearchSpace,
     run_optimizer,
 )
+from Pipeline.Models.Experiments.plot_bob_convergence import extract_convergence
 
 
 class CircularMetricsTests(unittest.TestCase):
@@ -102,6 +103,66 @@ class OptimizerInterfaceTests(unittest.TestCase):
             min(record.objective_mace_deg for record in result.history),
         )
         self.assertEqual(result.history[-1].best_params, result.best_params)
+
+
+class ConvergenceExtractionTests(unittest.TestCase):
+    def test_seeds_are_averaged_within_subject_before_group_summary(self) -> None:
+        def run(offset: float) -> dict[str, object]:
+            return {
+                "history": [
+                    {
+                        "evaluation": evaluation,
+                        "best_objective_mace_deg": offset - evaluation,
+                        "cumulative_seconds": evaluation * (offset / 10.0),
+                    }
+                    for evaluation in (1, 2, 3)
+                ],
+                "checkpoints": [
+                    {"evaluation": 1, "test_metrics_pooled": {"mace": offset}},
+                    {"evaluation": 3, "test_metrics_pooled": {"mace": offset - 2}},
+                ],
+            }
+
+        payload = {
+            "run_signature": {
+                "model": "BOB",
+                "band": "theta",
+                "zero_phase": False,
+                "optimizers": ["skopt_gp"],
+                "seeds": [42, 43],
+                "n_evaluations_total": 3,
+                "n_startup_evaluations": 1,
+                "checkpoint_evaluations": [1, 3],
+            },
+            "subjects": [
+                {
+                    "subject": {"name": "one"},
+                    "default": {"test_metrics_pooled": {"mace": 60.0}},
+                    "optimizer_runs": {
+                        "skopt_gp": {"42": run(50.0), "43": run(52.0)}
+                    },
+                },
+                {
+                    "subject": {"name": "two"},
+                    "default": {"test_metrics_pooled": {"mace": 62.0}},
+                    "optimizer_runs": {
+                        "skopt_gp": {"42": run(54.0), "43": run(56.0)}
+                    },
+                },
+            ],
+        }
+
+        summary = extract_convergence(payload)
+
+        np.testing.assert_allclose(
+            summary.calibration["skopt_gp"].mean,
+            np.array([52.0, 51.0, 50.0]),
+        )
+        np.testing.assert_allclose(
+            summary.test_mace["skopt_gp"].mean,
+            np.array([53.0, 51.0]),
+        )
+        self.assertEqual(summary.default_test_mace_deg, 61.0)
 
 
 if __name__ == "__main__":

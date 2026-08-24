@@ -73,6 +73,19 @@ and seed-variability summaries. The compressed NumPy files contain the raw,
 wrapped estimated-minus-ground-truth test errors in radians for the default and
 every optimizer/seed/checkpoint/timepoint combination.
 
+Generate a three-panel convergence figure from any completed aggregate JSON:
+
+```powershell
+python -m Pipeline.Models.Experiments.plot_bob_convergence `
+  --input Pipeline/Results/Raw/BOB_full/theta/zero_phase_false/bob_theta_zero_phase_false.json `
+  --output Pipeline/Results/Figures/bob_theta_zero_phase_false_optimizer_convergence.png
+```
+
+The first and third panels use all recorded optimizer evaluations. The held-out
+test panel uses only the configured checkpoints. Repeated seeds are averaged
+within each subject before the across-subject mean and 95% confidence interval
+are calculated.
+
 Run the dependency-light checks with:
 
 ```powershell
@@ -88,6 +101,8 @@ python -m unittest discover -s tests -v
 - `Pipeline/Models/Optimizers/`: four optimizer adapters behind one interface.
 - `Pipeline/Models/Experiments/bob_ablation.py`: resumable CLI experiment loop
   and result serialization.
+- `Pipeline/Models/Experiments/plot_bob_convergence.py`: full-resolution
+  calibration, held-out test, and optimizer-runtime convergence figures.
 
 ## Data availability
 

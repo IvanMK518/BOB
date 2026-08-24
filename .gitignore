@@ -2,5 +2,5 @@ Pipeline/Data/Processed Data/
 .venv/
 __pycache__/
 *.py[cod]
-Pipeline/Results/Raw/BOB/
-Pipeline/Results/Raw/BOB_smoke/
+Pipeline/Results/Raw
+
